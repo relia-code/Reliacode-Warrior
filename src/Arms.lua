@@ -144,6 +144,7 @@ Action[ACTION_CONST_WARRIOR_ARMS] = {
     ConquerorsBanner = Create({Type = "Spell", ID = 324143}),
     AncientAftershock = Create({Type = "Spell", ID = 325886}),
     Condemn = Create({Type = "Spell", ID = 317349}),
+    PhialOfSerenity = Create({Type = "Potion", ID = 177278}),
     -- Movememnt
     Charge = Create({Type = "Spell", ID = 100}),
     Intervene = Create({Type = "Spell", ID = 3411}),
@@ -496,18 +497,18 @@ local function SelfDefensives()
     if A.PhialofSerenity:IsReady(player) and Unit(player):HasDeBuffs(A.MindGamesDebuff.ID) == 0 and
     PhialofSerenityOperator == "AND" then
         if (PhialofSerenityHP <= 0 or Unit(player):HealthPercent() <= PhialofSerenityHP) and (PhialofSerenityTTD <= 0 or Unit(player):TimeToDie() <= PhialofSerenityTTD) then
-            return A.AbyssalHealingPotion
+            return A.PhialOfSerenity
         end
     else
         if A.PhialofSerenity:IsReady(player) and (PhialofSerenityHP > 0 and Unit(player):HealthPercent() <= PhialofSerenityHP) or (PhialofSerenityTTD > 0 and Unit(player):TimeToDie() <= PhialofSerenityTTD) then
-            return A.AbyssalHealingPotion
+            return A.PhialOfSerenity
         end
     end
 
     -- Dispel
     if A.PhialofSerenity:IsReady(player) and AuraIsValidByPhialofSerenity() then
-        return A.AbyssalHealingPotion
-    end]]
+        return A.PhialOfSerenity
+    end
     -- VictoryRush
     local VictoryRush = GetToggle(2, "VictoryRush")
     if
@@ -1207,7 +1208,7 @@ A[3] = function(icon)
         end
 
         -- [🚧- Util] [Piercing Howl]
-        -- Improve usage for peeling enemy untargetted melee
+        -- Improve usage for peeling enemy un-targeted melee
         if
             A.PiercingHowl:IsReady(unitID, true) and InMelee(unitID) and not holdCD and
                 Unit(unitID):GetMaxSpeed() >= 100 and
