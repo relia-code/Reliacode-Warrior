@@ -171,7 +171,7 @@ Action[ACTION_CONST_WARRIOR_ARMS] = {
     MindGamesDebuff = Create({Type = "Spell", ID = 323707, Hidden = true})
 }
 
---Action:CreateCovenantsFor(ACTION_CONST_WARRIOR_ARMS)
+Action:CreateCovenantsFor(ACTION_CONST_WARRIOR_ARMS)
 local A = setmetatable(Action[ACTION_CONST_WARRIOR_ARMS], {__index = Action})
 
 local player = "player"
@@ -312,7 +312,7 @@ local function GetByRangePvP(count, range)
     -- @return boolean
     local c = 0
     for unitID in pairs(ActiveUnitPlates) do
-        if UnitIsPlayer(unitID) then --and (not Unit(unitID):IsHealer() or not Unit(unitID):IsBreakAble()) then
+        if UnitIsPlayer(unitID) and (not Unit(unitID):IsHealer() or not Unit(unitID):IsBreakAble()) then
             if InMelee(unitID) then
                 c = c + 1
             elseif range then
@@ -418,7 +418,7 @@ A[2] = function(icon)
     end
 end
 
--- Usage of RallyingCry, Diebythesword, Ignore pain and stoneform
+-- Usage of Rallying Cry, Die by the Sword, Ignore Pain and Stoneform
 local function SelfDefensives()
     -- RallyingCry
     local RallyingCry = GetToggle(2, "RallyingCry")
@@ -454,7 +454,7 @@ local function SelfDefensives()
         return A.DiebytheSword
     end
 
-    -- Stoneform (On Deffensive)
+    -- Stoneform (On Defensive)
     local Stoneform = GetToggle(2, "Stoneform")
     if
         Stoneform >= 0 and A.Stoneform:IsRacialReadyP(player) and
@@ -476,13 +476,13 @@ local function SelfDefensives()
         IgnorePain >= 0 and A.IgnorePain:IsReady(player) and CanIgnorePain(1.3) and
             (-- Auto
             (IgnorePain >= 100 and
-                --[[A.IsInPvP and
+                A.IsInPvP and
                     (
                         Player:Rage() > 80 or
                         Player:Rage() >= 50 and
                         Unit(player):IsFocused() or
                         Unit(player):HealthPercent() < 70
-                    ) or]]
+                    ) or
                 (A.IsInPvP and Unit(player):IsFocused() and (Player:Rage() > 80 or Unit(player):HealthPercent() < 70) or
                     not A.IsInPvP and isCurrentlyTanking() and
                         (Unit(player):TimeToDieX(60) < 2 or Unit(player):HealthPercent() < 70))) or -- Custom
@@ -491,8 +491,8 @@ local function SelfDefensives()
         return A.IgnorePain
     end
 
-    -- PhialofSerenity
-    --[[local PhialofSerenityHP, PhialofSerenityOperator, PhialofSerenityTTD = GetToggle(2, "PhialofSerenityHP"), GetToggle(2, "PhialofSerenityOperator"), GetToggle(2, "PhialofSerenityTTD")
+    -- Phial of Serenity
+    local PhialofSerenityHP, PhialofSerenityOperator, PhialofSerenityTTD = GetToggle(2, "PhialofSerenityHP"), GetToggle(2, "PhialofSerenityOperator"), GetToggle(2, "PhialofSerenityTTD")
     if A.PhialofSerenity:IsReady(player) and Unit(player):HasDeBuffs(A.MindGamesDebuff.ID) == 0 and
     PhialofSerenityOperator == "AND" then
         if (PhialofSerenityHP <= 0 or Unit(player):HealthPercent() <= PhialofSerenityHP) and (PhialofSerenityTTD <= 0 or Unit(player):TimeToDie() <= PhialofSerenityTTD) then
@@ -537,7 +537,7 @@ local function Interrupts(unitID)
             InterruptIsValid(unitID, nil, nil, countInterruptGCD(unitID))
     end
 
-    -- Can waste interrupt action due delays caused by ping, interface input
+    -- Can waste interrupt action due to delays caused by ping, interface input
     if castRemainsTime < GetLatency() then
         return
     end
@@ -661,16 +661,16 @@ A[3] = function(icon)
         if ShouldSpellReflect(player, Temp.SpellReflectTimer) then
             return A.SpellReflection:Show(icon)
         end
-    -- Defensive Trinkets
-    --if Unit(player):HealthPercent() <= GetToggle(2, "TrinketDefensive") then
-    --if A.Trinket1:IsReady(player, true) and A.Trinket1:GetItemCategory() ~= "DPS" and not Temp.IsSlotTrinketBlocked[A.Trinket1.ID] then
-    --    return A.Trinket1:Show(icon)
-    --end
+        -- Defensive Trinkets
+        if Unit(player):HealthPercent() <= GetToggle(2, "TrinketDefensive") then
+            if A.Trinket1:IsReady(player, true) and A.Trinket1:GetItemCategory() ~= "DPS" and not Temp.IsSlotTrinketBlocked[A.Trinket1.ID] then
+                return A.Trinket1:Show(icon)
+            end
 
-    --if A.Trinket2:IsReady(player, true) and A.Trinket2:GetItemCategory() ~= "DPS" and not Temp.IsSlotTrinketBlocked[A.Trinket2.ID] then
-    --    return A.Trinket2:Show(icon)
-    --end
-    --end
+            if A.Trinket2:IsReady(player, true) and A.Trinket2:GetItemCategory() ~= "DPS" and not Temp.IsSlotTrinketBlocked[A.Trinket2.ID] then
+                return A.Trinket2:Show(icon)
+            end
+        end
     end
 
     -- [✔️- Defensive] [Rallying Cry: Team]
@@ -742,7 +742,7 @@ A[3] = function(icon)
 
             --colossus_smash
             if
-                isBurst and A.ColossusSmash:IsReady(unitID) and not A.Warbreaker:IsSpellLearned() and
+                isBurst and A.ColossusSmash:IsReady(unitID) and InMelee(unitID) and not A.Warbreaker:IsSpellLearned() and
                     A.ColossusSmash:AbsentImun(unitID, Temp.TotalAndPhys)
              then
                 --avatar,if=cooldown.colossus_smash.remains<1
@@ -856,7 +856,7 @@ A[3] = function(icon)
 
             --colossus_smash
             if
-                isBurst and A.ColossusSmash:IsReady(unitID) and not A.Warbreaker:IsSpellLearned() and
+                isBurst and A.ColossusSmash:IsReady(unitID) and InMelee(unitID) and not A.Warbreaker:IsSpellLearned() and
                     A.ColossusSmash:AbsentImun(unitID, Temp.TotalAndPhys)
              then
                 --avatar,if=cooldown.colossus_smash.remains<1
@@ -982,7 +982,7 @@ A[3] = function(icon)
 
             --colossus_smash
             if
-                isBurst and A.ColossusSmash:IsReady(unitID) and not A.Warbreaker:IsSpellLearned() and
+                isBurst and A.ColossusSmash:IsReady(unitID) and InMelee(unitID) and not A.Warbreaker:IsSpellLearned() and
                     A.ColossusSmash:AbsentImun(unitID, Temp.TotalAndPhys)
              then
                 --avatar,if=cooldown.colossus_smash.remains<1
@@ -1402,7 +1402,7 @@ A[3] = function(icon)
             end
 
             if
-                isBurst and A.ColossusSmash:IsReady(unitID) and not A.Warbreaker:IsSpellLearned() and
+                isBurst and A.ColossusSmash:IsReady(unitID) and InMelee(unitID) and not A.Warbreaker:IsSpellLearned() and
                     A.ColossusSmash:AbsentImun(unitID, Temp.TotalAndPhys, ignoreKarma)
              then
                 --avatar,if=cooldown.colossus_smash.remains<1
@@ -1473,7 +1473,7 @@ A[3] = function(icon)
 
             --colossus_smash
             if
-                isBurst and A.ColossusSmash:IsReady(unitID) and not A.Warbreaker:IsSpellLearned() and
+                isBurst and A.ColossusSmash:IsReady(unitID) and InMelee(unitID) and not A.Warbreaker:IsSpellLearned() and
                     A.ColossusSmash:AbsentImun(unitID, Temp.TotalAndPhys, ignoreKarma)
              then
                 --avatar,if=cooldown.colossus_smash.remains<1
@@ -1738,7 +1738,7 @@ end
 
 local function PartyRotation(icon, unitID)
     if unitID and A.IsInPvP then
-        -- Intevene is ready and unit not in LOS
+        -- Intervene is ready and unit not in LOS
         if
             A.Intervene:IsReadyByPassCastGCD(unitID) and not Unit(unitID):InLOS() and
                 -- Don't intervene if I have Avatar & intervene target > 5 yards away
@@ -1747,10 +1747,10 @@ local function PartyRotation(icon, unitID)
                 -- Intervene when passes logic from ProfileUI or it is a scatter shot / binding shot
                 (A.Overwatch:IsSpellLearned() and
                     (IntervenePvP(unitID, Temp.SpellReflectTimer, Temp.HasPriest) or
-                        Unit(unitID):HasDeBuffs(A.BlindDebuff.ID) > 0 and Unit(unitID):HasDeBuffs(A.BlindDebuff.ID) < 2) or --or Unit(unitID):HasDeBuffs(Temp.InterveneInstaIDs) > 0
-                    -- Peel teamate if hp less then 25%
+                        Unit(unitID):HasDeBuffs(A.BlindDebuff.ID) > 0 and Unit(unitID):HasDeBuffs(A.BlindDebuff.ID) < 2) or Unit(unitID):HasDeBuffs(Temp.InterveneInstaIDs) > 0 or
+                    -- Peel teammate if hp less then 25%
                     Unit(unitID):HealthPercent() > 0 and Unit(unitID):HealthPercent() < 25 or
-                    -- Peel teamate if not overwatch talent and enemy burst
+                    -- Peel teammate if not overwatch talent and enemy burst
                     not A.Overwatch:IsSpellLearned() and Unit(unitID):IsFocused(nil, true) and Unit(unitID):IsHealer())
          then
             return A.Intervene:Show(icon)
